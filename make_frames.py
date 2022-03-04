@@ -47,7 +47,7 @@ df = df.sort_values(by=['ts'])
 df = df.reset_index()
 
 # make an empty image
-canvas = np.empty((1000, 1000))
+canvas = np.empty((1001, 1001))
 canvas[:] = np.NaN
 
 # dictionary of snapshots
