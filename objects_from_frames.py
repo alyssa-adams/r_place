@@ -17,6 +17,9 @@ with open('snapshots.p', 'rb') as handle:
 # add into frames
 frames = {}
 
+# change nans to another number
+snapshots = {k: np.nan_to_num(v, nan=-1) for k, v in snapshots.items()}
+
 # only do a few polygons
 polygons = dict(random.sample(polygons.items(), 10))
 
@@ -95,7 +98,7 @@ df = pd.DataFrame(frame_changes, columns=['object', 'frame', 'diff'])
 
 # plot as lineplot
 sns.set(rc={'figure.figsize': (10, 5)})
-sns.lineplot(data=df, x="frame", y="diff", hue="object", legend=False)
+sns.lineplot(data=df, x="frame", y="diff", hue="object", legend=False, linewidth=0.5, alpha=0.5)
 plt.xlabel("Time (10 minute increments)")
 plt.ylabel("% change of object outline")
 
