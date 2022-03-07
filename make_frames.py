@@ -56,16 +56,22 @@ snapshots = {}
 # set a time increment between images, in minutes
 t_delta = 10
 
+# get the first timestamp
 t_ten_start = df['ts'][0]
 
 # loop over moves to take canvas snapshots at time increments
 for index, row in df.iterrows():
-    canvas[row['x_coordinate'], row['y_coordinate']] = row['color']
+
+    # add pixel to canvas: 0,0 is upper left, 999,999 is lower right
+    canvas[row['y_coordinate'], row['x_coordinate']] = row['color']
 
     # check to see if ten minutes have passed, if so then save image to dict
     if row['ts'] > t_ten_start + timedelta(minutes=t_delta):
 
-        snapshots[row['ts']] = canvas
+        canvas_now = canvas.copy()
+        snapshots[row['ts']] = canvas_now
+
+        # save new ten minute start time
         t_ten_start = row['ts']
 
 # pickle these snapshots

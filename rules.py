@@ -1,6 +1,7 @@
 import pickle
 import numpy as np
 import pandas as pd
+from collections import Counter
 
 # if frames are small, get rules
 # also can get rule freq as a function of dt
@@ -35,7 +36,7 @@ for i, ts in enumerate(list(snapshots.keys())[1:]):  # skip the first one
 
             # get rule outcome
             outcome = cell
-
+ 
             # get old state of itself + neighborhood of size n = 1
 
             # if no neighbors
@@ -51,10 +52,12 @@ for i, ts in enumerate(list(snapshots.keys())[1:]):  # skip the first one
                                      [image_before[r-1, c-1], image_before[r-1, c], image_before[r-1, c+1]]])
 
             # save rule to list
-            rules_dt.append((neighborhood, outcome))
+            rules_dt.append(str((neighborhood.tolist(), outcome)))
 
     # save to dict
-    rules[ts] = rules_dt
+    # have to save histogram instead (too big for memory)
+    rules[ts] = Counter(rules_dt)
+    print(ts)
 
 # pickle the rules
 with open('rules.p', 'wb') as handle:

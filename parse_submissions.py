@@ -2,28 +2,50 @@
 
 import json
 import pickle
+import re, json, ast
 
 with open('raw_posts.pickle', 'rb') as handle:
     raw_posts = pickle.load(handle)
 
+polygons = {}
 
+for submissions in raw_posts:
 
-for submission in reddit.subreddit('placeAtlas').new(limit=220):
-    # print(dir(submission))
-    if (submission.link_flair_text == "New Entry"):
-        text = submission.selftext
-        text = text.replace("\"id\": 0,", "\"id\": 0,\n\t\t\"submitted_by\": \"" + submission.author.name + "\",")
+    # convert to json
+    submissions = json.loads(submissions)
+    submissions = submissions['data']
 
-        lines = text.split("\n")
+    # skip if empty
+    if len(submissions) > 0:
 
-        for i, line in enumerate(lines):
-            if ("\"id\": 0" in line):
-                lines[i] = line.replace("\"id\": 0", "\"id\": " + str(startId))
-                startId = startId + 1
+        # loop over submissions in this chunk
+        for submission in submissions:
 
-        text = "\n".join(lines)
+            try:
+                submission = json.loads(submission['selftext'])
+            except:
+                continue
 
-        outfile.write(text + ",")
-        print("written " + submission.title)
-    else:
-        print("skipped " + submission.title)
+            name = submission['name']
+            description = submission['description']
+            website = submission['website']
+            subreddit = submission['subreddit']
+            center = submission['center']
+            path = submission['path']
+
+            # remove all the 0.5's
+            center = ast.literal_eval(re.sub(r'\.5', '', str(center)))
+            path = ast.literal_eval(re.sub(r'\.5', '', str(path)))
+
+            # save polygon
+            polygons[name] = {
+                'description': description,
+                'website': website,
+                'subreddit': subreddit,
+                'center': center,
+                'path': path
+            }
+
+# pickle the polygons
+with open('polygons.p', 'wb') as handle:
+    pickle.dump(polygons, handle)
