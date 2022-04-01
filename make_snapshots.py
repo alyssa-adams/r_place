@@ -59,25 +59,48 @@ t_delta = 10
 # get the first timestamp
 t_ten_start = df['ts'][0]
 
+n_tiles = 0
+users = []
+
 # loop over moves to take canvas snapshots at time increments
 for index, row in df.iterrows():
 
     # add pixel to canvas: 0,0 is upper left, 999,999 is lower right
     canvas[row['y_coordinate'], row['x_coordinate']] = row['color']
+    n_tiles += 1
+
+    # add user
+    users.append(row['user_hash'])
 
     # check to see if ten minutes have passed, if so then save image to dict
     if row['ts'] > t_ten_start + timedelta(minutes=t_delta):
 
+        # get number of tiles placed during the time
+
+        # get number of unique users during this time
+        n_users = len(list(set(users)))
+
+        # get the canvas state at the end of this timestamp
         canvas_now = canvas.copy()
-        snapshots[row['ts']] = canvas_now
+
+        # save to dict
+        snapshots[row['ts']] = {
+            'n_tiles': n_tiles,  # at the end of the ten minute increment
+            'n_users': n_users,
+            'canvas_now': canvas_now
+        }
 
         # save new ten minute start time
         t_ten_start = row['ts']
+
+        # reset counts
+        n_tiles = 0
+        users = []
 
 # pickle these snapshots
 with open('snapshots.p', 'wb') as handle:
     pickle.dump(snapshots, handle)
 
 # also pickle the df of actions
-with open('df_actions.p', 'wb') as handle:
-    pickle.dump(df, handle)
+#with open('df_actions.p', 'wb') as handle:
+#    pickle.dump(df, handle)
