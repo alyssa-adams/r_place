@@ -39,14 +39,15 @@ colors = ['#FFFFFF', '#E4E4E4', '#888888', '#222222', '#FFA7D1', '#E50000', '#E5
 cmap = LinearSegmentedColormap.from_list('yes', colors, N=16)
 cmap.set_bad(color='grey')
 
+fig = plt.figure(figsize=(20, 30))
+fig.subplots_adjust(hspace=0.1, wspace=0.1)
+
 for i, sn in enumerate(snapshot_ns, start=1):
 
     canvas = snapshots[list(snapshots.keys())[sn]]['canvas_now']
-    plt.subplot(3, 2, i)
+    ax = fig.add_subplot(3, 2, i)
     plt.imshow(canvas, cmap=cmap)
     plt.axis('off')
-    plt.title('Snapshot ' + str(sn), fontsize=7)
+    plt.title('Snapshot ' + str(sn), fontsize=40)
 
-plt.show()
-plt.clf()
-
+plt.savefig('snapshots.png')

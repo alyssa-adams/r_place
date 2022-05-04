@@ -7,7 +7,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 
-"""
+
 # just need to run this top part once
 # ---- count frequencies of rules between snapshots ----
 
@@ -15,14 +15,8 @@ n = 1
 
 # need to save each frequency count separately for memory handling
 
-# n=2 neighborhoods on my laptop needed to be broken into two files to accomodate smaller memory
-with open('rules_n' + str(n) + '_1.p', 'rb') as f:
+with open('rules_n' + str(n) + '.p', 'rb') as f:
     rules = pickle.load(f)
-with open('rules_n' + str(n) + '_2.p', 'rb') as f:
-    rules2 = pickle.load(f)
-
-# combine the two files
-rules.update(rules2)
 
 # for each dt, just get sorted list of rule freq
 for t, ts in enumerate(rules.keys()):
@@ -55,13 +49,8 @@ n = 2
 # need to save each frequency count separately for memory handling
 
 # n=2 neighborhoods on my laptop needed to be broken into two files to accomodate smaller memory
-with open('rules_n' + str(n) + '_1.p', 'rb') as f:
+with open('rules_n' + str(n) + '.p', 'rb') as f:
     rules = pickle.load(f)
-with open('rules_n' + str(n) + '_2.p', 'rb') as f:
-    rules2 = pickle.load(f)
-
-# combine the two files
-rules.update(rules2)
 
 # for each dt, just get sorted list of rule freq
 for t, ts in enumerate(rules.keys()):
@@ -122,6 +111,7 @@ for file in files:
     freqs.append(f)
     print(file)
 
+
 # ----- Now we make a plot -----
 
 # too many lines! Only take every 10th line
@@ -144,8 +134,6 @@ plt.savefig('rule_freq_n' + str(n) + '_users.png')
 plt.clf()
 
 
-
-
 # plot as many lineplots
 sns.lineplot(data=df, x="rank", y="freq", hue="Snapshot", size="n_pixels", palette="Spectral", alpha=0.8, sizes=(.1, 2))
 
@@ -158,10 +146,8 @@ plt.yscale('log')
 plt.savefig('rule_freq_n' + str(n) + '_pixels.png')
 plt.clf()
 
-"""
 
-
-
+# ----- load in all those frequencies and stitch together into single df -----
 
 n = 2
 
@@ -213,8 +199,6 @@ plt.yscale('log')
 
 plt.savefig('rule_freq_n' + str(n) + '_users.png')
 plt.clf()
-
-
 
 
 # plot as many lineplots
