@@ -32,7 +32,7 @@ The API should be generally open and transparent so the reddit community can bui
 # get 2D CA rule frequency changes over time, overall and hour by hour
 
 # import as df to sort by timestamp oldest to newest
-df = pd.read_csv('place_tiles')
+df = pd.read_csv('data/place_tiles_2017')
 df = df.dropna()
 
 # convert to timestamp, ints
@@ -98,7 +98,7 @@ for index, row in df.iterrows():
         users = []
 
 # pickle these snapshots
-with open('snapshots.p', 'wb') as handle:
+with open('pickles/snapshots_2017.p', 'wb') as handle:
     pickle.dump(snapshots, handle)
 
 # also pickle the df of actions

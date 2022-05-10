@@ -4,7 +4,7 @@ import json
 import pickle
 import re, json, ast
 
-with open('raw_posts.pickle', 'rb') as handle:
+with open('pickles/atlas_posts.p', 'rb') as handle:
     raw_posts = pickle.load(handle)
 
 polygons = {}
@@ -47,5 +47,5 @@ for submissions in raw_posts:
             }
 
 # pickle the polygons
-with open('polygons.p', 'wb') as handle:
+with open('pickles/polygons.p', 'wb') as handle:
     pickle.dump(polygons, handle)

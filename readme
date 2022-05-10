@@ -1,0 +1,8 @@
+make_snapshots.py --> snapshots.p makes frame by frame snapshots of canvas
+rules.py --> rules_nx.p makes set of rules that were used
+plot_rules.py --> plots plots rule freq distributions over time
+
+collect_place_posts --> gets reddit posts that mention r/place from api and puts them into subdirectories
+get_atlas_submissions --> collects atlas objects as outlined from atlas project
+parse_submissions --> parse atlas posts
+objects_from_frames --> attempts to place timestamps on atlas objects

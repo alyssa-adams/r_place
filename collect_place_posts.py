@@ -51,7 +51,7 @@ while True:
         dt_string = now.strftime("%d-%m-%Y-%H:%M:%S")
 
         # pickle dict of posts
-        with open(os.path.join('2022_place_posts', dt_string), 'wb') as handle:
+        with open(os.path.join('data/2022_place_posts', dt_string), 'wb') as handle:
             pickle.dump(raw_posts, handle)
 
         # also get the hot 1000 posts containing r/place
@@ -63,7 +63,7 @@ while True:
             raw_posts[type] = list(posts)
 
         # pickle list of lists
-        with open(os.path.join('2022_mentioned_posts', dt_string), 'wb') as handle:
+        with open(os.path.join('data/2022_mentioned_posts', dt_string), 'wb') as handle:
             pickle.dump(raw_posts, handle)
 
         print('Success!')

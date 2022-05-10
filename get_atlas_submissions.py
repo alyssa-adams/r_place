@@ -32,5 +32,5 @@ for _ in range(n_slices):
     print('.')
 
 # pickle list
-with open('raw_posts.pickle', 'wb') as handle:
+with open('pickles/atlas_posts.p', 'wb') as handle:
     pickle.dump(raw_posts, handle)

@@ -1,214 +1,112 @@
-import pickle
 import re
-
-import numpy as np
+import os
+import pickle
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import os
 
 
-# just need to run this top part once
 # ---- count frequencies of rules between snapshots ----
 
-n = 1
+ns = [2]
 
-# need to save each frequency count separately for memory handling
+for n in ns:
 
-with open('rules_n' + str(n) + '.p', 'rb') as f:
-    rules = pickle.load(f)
+    # list files for this n
+    files = list(os.listdir('pickles/rules'))
+    files = list(filter(lambda x: re.search('_n' + str(n), x), files))
 
-# for each dt, just get sorted list of rule freq
-for t, ts in enumerate(rules.keys()):
+    rules = {}
 
-    print(t)
+    # stitch together all the different rules pickles into a single dict
+    for file in files:
+        with open('pickles/rules/' + str(file), 'rb') as f:
+            print(file)
+            if file == 'rules_n2_2017_448.p': continue
+            data = pickle.load(f)
+            ts = data['ts']
 
-    # save to dict for now, then after these are made, stitch together into one df for plotting
-    freqs_all = {}
+        rules[ts] = data
 
-    # get frequency distribution
-    freqs = list(dict(rules[ts]['rule_freq']).values())
-    freqs.sort(reverse=True)
+    # for each dt, just get sorted list of rule freq
+    for t, ts in enumerate(rules.keys()):
 
-    # other information
-    n_tiles = rules[ts]['n_tiles']
-    n_users = rules[ts]['n_users']
+        print(t)
 
-    # add each value as row to df
-    for i, f in enumerate(freqs):
+        # save to dict for now, then after these are made, stitch together into one df for plotting
+        freqs_all = {}
 
-        to_append = [ts, i, f, n_tiles, n_users]
-        freqs_all[i] = to_append
+        # get frequency distribution
+        freqs = list(dict(rules[ts]['rule_freq']).values())
+        freqs.sort(reverse=True)
 
-    # pickle that df
-    with open('freq_dfs/freqs_all_' + str(t) + '_n' + str(n) + '.p', 'wb') as handle:
-        pickle.dump(freqs_all, handle)
+        # other information
+        n_tiles = rules[ts]['n_tiles']
+        n_users = rules[ts]['n_users']
 
-n = 2
+        # add each value as row to df
+        for i, f in enumerate(freqs):
 
-# need to save each frequency count separately for memory handling
+            to_append = [ts, i, f, n_tiles, n_users]
+            freqs_all[i] = to_append
 
-# n=2 neighborhoods on my laptop needed to be broken into two files to accomodate smaller memory
-with open('rules_n' + str(n) + '.p', 'rb') as f:
-    rules = pickle.load(f)
+        # pickle that df
+        with open('freq_dfs/freqs_all_' + str(t) + '_n' + str(n) + '.p', 'wb') as handle:
+            pickle.dump(freqs_all, handle)
 
-# for each dt, just get sorted list of rule freq
-for t, ts in enumerate(rules.keys()):
+    # stitch these together
+    files = os.listdir('freq_dfs')
 
-    print(t)
+    # only get the files for this n
+    files = list(filter(lambda x: re.search('_n' + str(n), x), files))
 
-    # save to dict for now, then after these are made, stitch together into one df for plotting
-    freqs_all = {}
+    # sort by number, not alphabetical
+    files = list(map(lambda x: (int(x.split('_')[2].split('.')[0]), x), files))
+    files.sort(key=lambda y: y[0])
 
-    # get frequency distribution
-    freqs = list(dict(rules[ts]['rule_freq']).values())
-    freqs.sort(reverse=True)
+    # load in files
+    freqs = []
 
-    # other information
-    n_tiles = rules[ts]['n_tiles']
-    n_users = rules[ts]['n_users']
+    for file in files:
 
-    # add each value as row to df
-    for i, f in enumerate(freqs):
+        file = file[1]
+        file_n = int(file.split('_')[2].split('.')[0])
 
-        to_append = [ts, i, f, n_tiles, n_users]
-        freqs_all[i] = to_append
+        # pickle that df
+        with open(os.path.join('freq_dfs', file), 'rb') as f:
+            freqs_all = pickle.load(f)
 
-    # pickle that df
-    with open('freq_dfs/freqs_all_' + str(t) + '_n' + str(n) + '.p', 'wb') as handle:
-        pickle.dump(freqs_all, handle)
+        # add to df
+        f = pd.DataFrame.from_dict(freqs_all, orient='index', columns=['ts', 'rank', 'freq', 'n_pixels', 'n_users'])
+        f['Snapshot'] = file_n
+        freqs.append(f)
+        print(file)
 
+    # ----- Now we make a plot -----
 
-# ----- load in all those frequencies and stitch together into single df -----
+    # too many lines! Only take every 10th line
+    freqs = freqs[::10]
 
-n = 1
+    # cat list of dfs
+    df = pd.concat(freqs)
+    df = df.reset_index()
 
-files = os.listdir('freq_dfs')
+    # plot as many lineplots
+    sns.lineplot(data=df, x="rank", y="freq", hue="Snapshot", size="n_users", palette="Spectral", alpha=0.8)
+    plt.title("n = " + str(n))
+    plt.xlabel("Ranked rule")
+    plt.ylabel("Frequency")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.savefig('figures/rule_freq_n' + str(n) + '_users.png')
+    plt.clf()
 
-# only get the files for this n
-files = list(filter(lambda x: re.search('_n' + str(n), x), files))
-
-# sort by number, not alphabetical
-files = list(map(lambda x: (int(x.split('_')[2].split('.')[0]), x), files))
-files.sort(key=lambda y: y[0])
-
-# load in files
-freqs = []
-
-for file in files:
-
-    file = file[1]
-
-    file_n = int(file.split('_')[2].split('.')[0])
-
-    # pickle that df
-    with open(os.path.join('freq_dfs', file), 'rb') as f:
-        freqs_all = pickle.load(f)
-
-    # add to df
-    f = pd.DataFrame.from_dict(freqs_all, orient='index', columns=['ts', 'rank', 'freq', 'n_pixels', 'n_users'])
-    f['Snapshot'] = file_n
-    freqs.append(f)
-    print(file)
-
-
-# ----- Now we make a plot -----
-
-# too many lines! Only take every 10th line
-freqs = freqs[::10]
-
-# cat list of dfs
-df = pd.concat(freqs)
-df = df.reset_index()
-
-# plot as many lineplots
-sns.lineplot(data=df, x="rank", y="freq", hue="Snapshot", size="n_users", palette="Spectral", alpha=0.8)
-
-plt.title("n = " + str(n))
-plt.xlabel("Ranked rule")
-plt.ylabel("Frequency")
-plt.xscale('log')
-plt.yscale('log')
-
-plt.savefig('rule_freq_n' + str(n) + '_users.png')
-plt.clf()
-
-
-# plot as many lineplots
-sns.lineplot(data=df, x="rank", y="freq", hue="Snapshot", size="n_pixels", palette="Spectral", alpha=0.8, sizes=(.1, 2))
-
-plt.title("n = " + str(n))
-plt.xlabel("Ranked rule")
-plt.ylabel("Frequency")
-plt.xscale('log')
-plt.yscale('log')
-
-plt.savefig('rule_freq_n' + str(n) + '_pixels.png')
-plt.clf()
-
-
-# ----- load in all those frequencies and stitch together into single df -----
-
-n = 2
-
-files = os.listdir('freq_dfs')
-
-# only get the files for this n
-files = list(filter(lambda x: re.search('_n' + str(n), x), files))
-
-# sort by number, not alphabetical
-files = list(map(lambda x: (int(x.split('_')[2].split('.')[0]), x), files))
-files.sort(key=lambda y: y[0])
-
-# load in files
-freqs = []
-
-for file in files:
-
-    file = file[1]
-
-    file_n = int(file.split('_')[2].split('.')[0])
-
-    # pickle that df
-    with open(os.path.join('freq_dfs', file), 'rb') as f:
-        freqs_all = pickle.load(f)
-
-    # add to df
-    f = pd.DataFrame.from_dict(freqs_all, orient='index', columns=['ts', 'rank', 'freq', 'n_pixels', 'n_users'])
-    f['Snapshot'] = file_n
-    freqs.append(f)
-    print(file)
-
-# ----- Now we make a plot -----
-
-# too many lines! Only take every 10th line
-freqs = freqs[::10]
-
-# cat list of dfs
-df = pd.concat(freqs)
-df = df.reset_index()
-
-# plot as many lineplots
-sns.lineplot(data=df, x="rank", y="freq", hue="Snapshot", size="n_users", palette="Spectral", alpha=0.8, sizes=(.1, 2))
-
-plt.title("n = " + str(n))
-plt.xlabel("Ranked rule")
-plt.ylabel("Frequency")
-plt.xscale('log')
-plt.yscale('log')
-
-plt.savefig('rule_freq_n' + str(n) + '_users.png')
-plt.clf()
-
-
-# plot as many lineplots
-sns.lineplot(data=df, x="rank", y="freq", hue="Snapshot", size="n_pixels", palette="Spectral", alpha=0.8)
-
-plt.title("n = " + str(n))
-plt.xlabel("Ranked rule")
-plt.ylabel("Frequency")
-plt.xscale('log')
-plt.yscale('log')
-
-plt.savefig('rule_freq_n' + str(n) + '_pixels.png')
-plt.clf()
+    # plot as many lineplots
+    sns.lineplot(data=df, x="rank", y="freq", hue="Snapshot", size="n_pixels", palette="Spectral", alpha=0.8, sizes=(.1, 2))
+    plt.title("n = " + str(n))
+    plt.xlabel("Ranked rule")
+    plt.ylabel("Frequency")
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.savefig('figures/rule_freq_n' + str(n) + '_pixels.png')
+    plt.clf()

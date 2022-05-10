@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import os, random
 
 # load in polygon frames
-with open('polygons.p', 'rb') as handle:
+with open('pickles/polygons.p', 'rb') as handle:
     polygons = pickle.load(handle)
 
 # load in snapshots
